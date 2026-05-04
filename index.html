@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FlowSystem v1.2.24</title>
+    
+    <!-- Bibliotecas Externas -->
+    <script>
+        tailwind = {
+            config: {
+                theme: {
+                    extend: {
+                        colors: {
+                            theme: 'var(--primary)',
+                            themeDark: 'var(--primary-dark)',
+                            themeLight: 'var(--primary-light)',
+                        },
+                        fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+
+  <script type="module" crossorigin src="/assets/index-B2yqUs47.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/ui-vendor-B1yXmgyV.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-DW27bgwH.css">
+</head>
+<body class="h-screen overflow-hidden flex text-sm bg-gray-50">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-4">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-purple-600 mb-4" id="loading-spinner"></div>
+        <h2 class="text-xl font-bold text-gray-800 tracking-tight" id="loading-text">Iniciando...</h2>
+        <p id="loading-error" class="text-red-500 font-bold text-sm mt-4 hidden text-center max-w-md bg-red-50 p-4 rounded-xl border border-red-200"></p>
+        <button id="retry-btn" onclick="location.reload()" class="mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-lg hidden shadow-lg transition">Recarregar Sistema</button>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-slate-100 to-slate-200 z-40 flex items-center justify-center p-6 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="brand-lockup brand-lockup-login justify-center">
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20128%20128'%20fill='none'%3e%3crect%20width='128'%20height='128'%20rx='30'%20fill='%230F172A'/%3e%3cpath%20d='M32%2034C32%2028.4772%2036.4772%2024%2042%2024H98V38H47C44.7909%2038%2043%2039.7909%2043%2042V54H83V68H43V104H32V34Z'%20fill='%238B5CF6'/%3e%3cpath%20d='M55%2089H77C88.0457%2089%2097%2080.0457%2097%2069V66'%20stroke='%23F8FAFC'%20stroke-width='8'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M69%2031H96'%20stroke='%23C4B5FD'%20stroke-width='6'%20stroke-linecap='round'%20opacity='0.95'/%3e%3c/svg%3e" alt="FlowSystem" class="brand-symbol brand-symbol-login">
+                    <div class="brand-wordmark">
+                        <span class="brand-flow">FLOW</span><span class="brand-system">SYSTEM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Email</label>
+                    <input id="login-email" type="email" class="input-modern h-12" placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Senha</label>
+                    <input id="login-password" type="password" class="input-modern h-12" placeholder="••••••••">
+                </div>
+                <div class="flex justify-end -mt-1">
+                    <button onclick="window.sendPasswordReset()" class="text-xs font-black text-theme hover:underline">Esqueci minha senha</button>
+                </div>
+                <div id="login-msg" class="text-red-500 text-xs font-bold text-center h-4"></div>
+                <button onclick="window.doLogin()" id="btn-login" class="w-full btn-gradient py-3 rounded-lg font-bold shadow-lg mt-2 transition hover:scale-105">ENTRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Public Quote Screen -->
+    <div id="public-quote-screen" class="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-200 z-50 flex flex-col items-center p-4 overflow-y-auto hidden">
+        <div class="w-full max-w-5xl mt-10 mb-20 relative">
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+            <div class="bg-white rounded-2xl shadow-2xl p-8 relative z-10 border border-gray-100" id="public-quote-content">
+                <!-- Conteúdo Injetado -->
+            </div>
+        </div>
+    </div>
+
+    <!-- App Structure -->
+    <div id="app-root" class="flex w-full h-full hidden">
+        <div id="mobile-overlay" onclick="window.toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden transition-opacity"></div>
+        <aside id="main-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 flex flex-col shadow-sm transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:static">
+            <div class="p-6 flex items-center justify-center h-20 border-b border-gray-100" id="sidebar-logo-container"></div>
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav"></nav>
+            <div class="p-4 border-t border-gray-100">
+                <button onclick="window.doLogout()" class="flex items-center w-full px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition font-bold text-xs">
+                    <i data-lucide="log-out" class="w-4 h-4 mr-3"></i> Sair do Sistema
+                </button>
+            </div>
+        </aside>
+        <main class="flex-1 overflow-hidden flex flex-col relative w-full">
+            <header id="app-header" class="h-16 bg-white/90 backdrop-blur border-b border-gray-200 px-4 md:px-8 flex justify-between items-center shrink-0 z-10">
+                <div class="flex items-center">
+                    <button onclick="window.toggleSidebar()" class="mr-4 md:hidden text-gray-500 hover:text-theme p-1">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <h2 id="page-title" class="text-lg md:text-xl font-bold text-gray-800 tracking-tight truncate">Visão Geral</h2>
+                </div>
+                <div id="header-actions" class="flex items-center space-x-3 md:space-x-4">
+                    <div id="header-user-info" class="hidden md:flex flex-col text-right justify-center"></div>
+                    <button id="header-global-search" onclick="window.openGlobalSearch()" class="relative w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-theme hover:border-theme/30 transition" title="Busca global">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+                    <button id="header-messages" onclick="window.openInternalMessagesCenter()" class="relative w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-theme hover:border-theme/30 transition" title="Mensagens internas">
+                        <i data-lucide="messages-square" class="w-5 h-5"></i>
+                        <span id="header-message-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-theme text-white text-[10px] font-black flex items-center justify-center">0</span>
+                    </button>
+                    <button id="header-notifications" onclick="window.openNotificationsPanel()" class="relative w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-theme hover:border-theme/30 transition">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="header-notification-count" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">0</span>
+                    </button>
+                    <div class="w-10 h-10 rounded-full btn-gradient flex items-center justify-center font-black shadow-lg text-white ring-2 ring-white" id="header-user-avatar">U</div>
+                </div>
+            </header>
+            <div id="view-container" class="flex-1 overflow-auto p-4 md:p-8 pb-32"></div>
+            <button id="floating-ai-bot" onclick="window.toggleInternalAiChatWidget()" title="Flow Bot" aria-label="Flow Bot" class="hidden fixed right-5 bottom-5 z-[90] items-center justify-center rounded-full bg-theme text-white ring-4 ring-white/85 hover:brightness-110 transition h-16 w-16 p-0" style="box-shadow: 0 20px 50px color-mix(in srgb, var(--primary) 35%, transparent);">
+                <span class="inline-flex h-full w-full items-center justify-center">
+                    <i data-lucide="bot" class="w-7 h-7 block shrink-0"></i>
+                </span>
+            </button>
+        </main>
+    </div>
+
+    <!-- Modals & Print -->
+    <div id="modal-container"></div>
+    <div id="print-area" class="hidden"></div>
+
+</body>
+</html>
+
+
+
+
